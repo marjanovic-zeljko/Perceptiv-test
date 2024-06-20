@@ -118,7 +118,6 @@
                   assign visual_layout_class = 'facets-layout facets-layout-list facets-layout-list--' | append: presentation
                 endif
               %}
-
               {% case filter.type %}
                 {% when 'boolean', 'list' %}
                   <details
@@ -293,6 +292,7 @@
                           {%- endfor -%}
                         </ul>
                       </fieldset>
+
                       {%- if filter.values.size > show_more_number and filter_type == 'vertical' -%}
                         <show-more-button>
                           <button
@@ -448,6 +448,7 @@
       </form>
     </facet-filters-form>
   {%- endif -%}
+
   {% comment %}  Drawer and mobile filter {% endcomment %}
   <menu-drawer
     class="mobile-facets__wrapper{% if filter_type == 'horizontal' or filter_type == 'vertical' %} medium-hide large-up-hide{% endif %}"
@@ -623,7 +624,7 @@
                                         disabled
                                       {% endif %}
                                     >
-
+                                    {{ value.value }}
                                     {%- if presentation == 'image' -%}
                                       <div class="facets__image-wrapper">
                                         {%- if value.image -%}
