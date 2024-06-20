@@ -25,15 +25,10 @@
   assign product_form_id = 'product-form-' | append: section.id
 -%}
 
-{% comment %} adding metaobject of colours inside variable {% endcomment %}
 {%- assign newMetafield = shop.metaobjects.colours.values -%}
-{% comment %} asking if the option name is colour because we dont need to loop through the metaobject {% endcomment %}
 {% if option.name == 'Colour' %}
-  {% comment %}creating empty array {% endcomment %}
   {% assign arrayOfMetafields = '' %}
-  {% comment %} looping through the metaobject {% endcomment %}
   {% for newMetafieldKey in newMetafield %}
-    {% comment %} appending the name and the colour to the array {% endcomment %}
     {%- assign arrayOfMetafields = arrayOfMetafields
       | append: newMetafieldKey.name
       | append: ':'
@@ -109,19 +104,12 @@
       help_text: help_text
     %}
   {%- elsif picker_type == 'button' -%}
-    {% comment %} checking if the option name is colour {% endcomment %}
     {% if option.name == 'Colour' %}
-      {% comment %} splitting the array of colours into pairs {% endcomment %}
       {% assign colorPairs = arrayOfMetafields | split: ',' %}
-      {% comment %} creating empty string for the colour {% endcomment %}
       {% assign swatchColor = '' %}
-      {% comment %} looping through the pairs {% endcomment %}
       {% for pair in colorPairs %}
-        {% comment %} splitting the pair into name and hex {% endcomment %}
         {% assign nameAndHex = pair | split: ':' %}
-        {% comment %} checking if the name is the same as the value {% endcomment %}
         {% if nameAndHex[0] == value %}
-          {% comment %} assigning the colour to the swatchColor {% endcomment %}
           {% assign swatchColor = nameAndHex[1] %}
         {% endif %}
       {% endfor %}
@@ -129,6 +117,7 @@
       <input
         type="radio"
         id="{{ input_id }}"
+        class="inputColor"
         name="{{ option.name }}"
         value="{{ value | escape }}"
         form="{{ product_form_id }}"
@@ -193,3 +182,13 @@
     </option>
   {%- endif -%}
 {%- endfor -%}
+<script>
+  let inputColors = document.querySelectorAll('.inputColor');
+  inputColors.forEach(function (inputColor) {
+    inputColor.addEventListener('click', function () {
+      setTimeout(function () {
+        window.location.reload();
+      }, 500);
+    });
+  });
+</script>
