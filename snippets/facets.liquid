@@ -16,6 +16,79 @@
 {{ 'component-swatch-input.css' | asset_url | stylesheet_tag }}
 {{ 'component-swatch.css' | asset_url | stylesheet_tag }}
 
+{%- assign colorList = '' -%}
+
+{% for product in collection.products %}
+  {% if product.metafields.custom.parent_colour.value != null %}
+    {% assign color = product.metafields.custom.parent_colour.value | json %}
+    {% unless colorList contains color %}
+      {% assign colorList = colorList | append: color | append: ',' %}
+    {% endunless %}
+  {% endif %}
+  {% for variant in product.variants %}
+    {% if variant.metafields.custom.specific_colour_.value != null %}
+      {% assign color = variant.metafields.custom.specific_colour_.value | json %}
+      {% unless colorList contains color %}
+        {% assign colorList = colorList | append: color | append: ',' %}
+      {% endunless %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+{%- assign colorList = colorList | split: ',' | uniq -%}
+
+{%- for color in colorList -%}
+  {{ color }}
+{%- endfor %}
+<script>
+  console.log({{ color }});
+</script>
+{% comment %}
+  {%- assign newMetafield = shop.metaobjects.colours.values -%}
+  {%- assign newMetafieldSub = shop.metaobjects.sub_colours.values -%}
+  {%- assign combinedMetafields = '' -%}
+  {%- assign productComparator = '' -%}
+
+  {%- for itemMetafield in newMetafield -%}
+    {%- assign combinedMetafields = combinedMetafields
+      | append: itemMetafield.name
+      | append: ':'
+      | append: itemMetafield.select_colour
+      | append: ','
+    -%}
+  {%- endfor -%}
+  {%- for itemMetafieldSub in newMetafieldSub -%}
+    {%- assign combinedMetafields = combinedMetafields
+      | append: itemMetafieldSub.name
+      | append: ':'
+      | append: itemMetafieldSub.select_colour
+      | append: ','
+    -%}
+  {%- endfor -%}
+
+  {% assign colorPairs = combinedMetafields | split: ',' | uniq %}
+  {% assign swatchColor = '' %}
+  {% for pair in colorPairs %}
+    {% assign nameAndHex = pair | split: ':' %}
+    {% if nameAndHex[0] == value %}
+      {% assign swatchColor = nameAndHex[1] %}
+    {% endif %}
+  {% endfor %}
+  <span style="color:blueviolet">{{ colorPairs }}</span>
+
+  {% for product in collection.products %}
+    {{ product.metafields.custom.parent_colour }},
+    {{ product.title }}
+    {%- assign productComparator = productComparator | append: product.metafields.custom.parent_colour | append: ',' -%}
+    {% for variant in product.variants %}
+      {%- assign variantMetafieldColor = variant.metafields.custom.specific_colour_ | append: ',' -%}
+      <span style="color:rgb(86, 226, 43)">{{ variant.title }}</span>
+      <span style="color:rgb(226, 0, 0)">{{ variantMetafieldColor }}</span>
+      {%- assign productComparator = productComparator | append: variantMetafieldColor -%}
+    {% endfor %}
+  {% endfor %}
+  {{ productComparator | split: ',' | uniq }}
+{% endcomment %}
 {%- liquid
   assign sort_by = results.sort_by | default: results.default_sort_by
   assign total_active_values = 0
@@ -216,9 +289,11 @@
 
                             <li class="list-menu__item facets__item{% if forloop.index > show_more_number and filter_type == 'vertical' %} show-more-item hidden{% endif %}">
                               {%- if presentation == 'swatch' -%}
+                                {% comment %} start codding {% endcomment %}
                                 <div class="{{ label_class }}">
                                   <div class="swatch-input-wrapper">
                                     {% render 'swatch-input',
+                                      class: 'facet-checkbox',
                                       id: input_id,
                                       type: 'checkbox',
                                       name: value.param_name,
@@ -232,6 +307,7 @@
 
                                   {{ text_value }}
                                 </div>
+
                               {%- else -%}
                                 <label for="{{ input_id }}" class="{{ label_class }}">
                                   <input
@@ -943,3 +1019,9 @@
     </facet-filters-form>
   {%- endif -%}
 </div>
+<script>
+  let colorSwatch = {{ variable }};
+  colorSwatch.forEach(swatch => {
+    console.log('Color:', swatch);
+  });
+</script>
