@@ -20,29 +20,70 @@
 
 {% for product in collection.products %}
   {% if product.metafields.custom.parent_colour.value != null %}
-    {% assign color = product.metafields.custom.parent_colour.value | json %}
-    {% unless colorList contains color %}
-      {% assign colorList = colorList | append: color | append: ',' %}
-    {% endunless %}
+    {% assign colorName = product.metafields.custom.parent_colour.value.name %}
+    {% assign colorHex = product.metafields.custom.parent_colour.value.select_colour %}
+    {% assign colorList = colorList | append: colorName | append: ':' | append: colorHex | append: ',' %}
   {% endif %}
   {% for variant in product.variants %}
     {% if variant.metafields.custom.specific_colour_.value != null %}
-      {% assign color = variant.metafields.custom.specific_colour_.value | json %}
-      {% unless colorList contains color %}
-        {% assign colorList = colorList | append: color | append: ',' %}
-      {% endunless %}
+      {% assign colorName = variant.metafields.custom.specific_colour_.value.name %}
+      {% assign colorHex = variant.metafields.custom.specific_colour_.value.select_colour %}
+      {% assign colorList = colorList | append: colorName | append: ':' | append: colorHex | append: ',' %}
     {% endif %}
   {% endfor %}
 {% endfor %}
-
 {%- assign colorList = colorList | split: ',' | uniq -%}
-
-{%- for color in colorList -%}
-  {{ color }}
-{%- endfor %}
+{% comment %} {% capture colorhtml %} {% endcomment %}
+{% for color in colorList %}
+  {% assign colors = color | split: ':' %}
+  <label class="color-swatch" style="background-color:{{ colors[1] }};">
+    <input type="radio" name="color" value="{{ colors[0] }}" style="visibility:hidden;">
+    {{ colors[0] }}
+  </label>
+{% endfor %}
+{% comment %} {% endcapture %} {% endcomment %}
 <script>
   console.log({{ color }});
 </script>
+{% comment %}
+  {% assign metaobject_filter = request.params.metaobject %}
+  {% assign filtered_products = collection.products %}
+
+  {% if metaobject_filter %}
+    {% assign filtered_products = filtered_products | where: 'metafields.namespace.key', metaobject_filter %}
+  {% endif %}
+  <div class="filter-options">
+    <h4>Filter by Metaobject</h4>
+    <ul>
+      <li><a href="{{ collection.url }}?metaobject=gid://shopify/Metaobject/76033753380">Metaobject 76033753380</a></li>
+    </ul>
+  </div>
+  <div class="product-list">
+    {% paginate filtered_products by 12 %}
+      {% for product in paginate.items %}
+        {% include 'product-grid-item' with product %}
+      {% endfor %}
+
+      {% include 'pagination' %}
+    {% endpaginate %}
+  </div>
+  <script>
+    document.querySelectorAll('.filter-options a').forEach(function (filterLink) {
+      filterLink.addEventListener('click', function (event) {
+        event.preventDefault();
+        var url = new URL(event.target.href);
+        var params = new URLSearchParams(url.search);
+        var metaobject = params.get('metaobject');
+
+        fetch('/collections/collection?metaobject=' + metaobject)
+          .then((response) => response.text())
+          .then((html) => {
+            document.querySelector('.product-list').innerHTML = html;
+          });
+      });
+    });
+  </script>
+{% endcomment %}
 {% comment %}
   {%- assign newMetafield = shop.metaobjects.colours.values -%}
   {%- assign newMetafieldSub = shop.metaobjects.sub_colours.values -%}
